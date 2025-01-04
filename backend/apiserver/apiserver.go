@@ -6,7 +6,6 @@ import (
 	"github.com/ITegs/crs.pics/database"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
-	"math/rand"
 	"net/http"
 )
 
@@ -120,22 +119,9 @@ func (api *apiServer) AddLink(w http.ResponseWriter, r *http.Request) {
 	var link database.Link
 	json.NewDecoder(r.Body).Decode(&link)
 
-	if len(link.Slug) == 0 {
-		link.Slug = generateRandomString(7)
-	}
-
 	createdLink := api.db.AddLink(link)
 
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(&createdLink)
 	w.WriteHeader(http.StatusCreated)
-}
-
-func generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	result := ""
-	for i := 0; i < length; i++ {
-		result += string(charset[rand.Intn(len(charset))])
-	}
-	return result
 }

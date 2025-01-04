@@ -5,12 +5,15 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"time"
 )
 
 type Link struct {
-	Slug string
-	Data string
-	gorm.Model
+	Slug      string `gorm:"default:random_string(7)"`
+	Data      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func initDb() *gorm.DB {
@@ -30,6 +33,31 @@ func initDb() *gorm.DB {
 		fmt.Println("Migration failed")
 		panic("Migration failed")
 	}
+
+	// db function to create a random string (for slug generation)
+	dbFuncSql := `
+		CREATE OR REPLACE FUNCTION random_string(length INT)
+		RETURNS TEXT AS $$
+		DECLARE
+			characters TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+			characters_length INT := LENGTH(characters);
+			random_string TEXT := '';
+			i INT;
+		BEGIN
+			IF length <= 0 THEN
+				RAISE EXCEPTION 'Length must be a positive integer';
+			END IF;
+		
+			FOR i IN 1..length LOOP
+				random_string := random_string || substr(characters, floor(random() * characters_length + 1)::int, 1);
+			END LOOP;
+		
+			RETURN random_string;
+		END;
+		$$ LANGUAGE plpgsql;
+	`
+
+	database.Exec(dbFuncSql)
 
 	return database
 }
