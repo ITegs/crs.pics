@@ -3,6 +3,7 @@ package apiserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ITegs/crs.pics/cloudprovider"
 	"github.com/ITegs/crs.pics/database"
 	"github.com/julienschmidt/httprouter"
 	"github.com/rs/cors"
@@ -15,11 +16,13 @@ type ApiServer interface {
 
 type apiServer struct {
 	db database.DB
+	cp cloudprovider.CP
 }
 
-func NewApiServer(DB database.DB) ApiServer {
+func NewApiServer(DB database.DB, CP cloudprovider.CP) ApiServer {
 	apiServer := &apiServer{
 		db: DB,
+		cp: CP,
 	}
 
 	return apiServer
@@ -77,6 +80,11 @@ func (api *apiServer) buildApi() *httprouter.Router {
 			Path:    "/newLink",
 			Handler: http.HandlerFunc(api.AddLink),
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/getFileNames",
+			Handler: http.HandlerFunc(api.GetFileNames),
+		},
 	}
 
 	for i := 0; i < len(routes); i++ {
@@ -124,4 +132,11 @@ func (api *apiServer) AddLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(&createdLink)
 	w.WriteHeader(http.StatusCreated)
+}
+
+func (api *apiServer) GetFileNames(w http.ResponseWriter, r *http.Request) {
+	fileNames := api.cp.GetAllFileNames()
+
+	json.NewEncoder(w).Encode(&fileNames)
+	w.WriteHeader(http.StatusOK)
 }

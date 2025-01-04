@@ -42,7 +42,6 @@ func initDb() *gorm.DB {
 			characters TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 			characters_length INT := LENGTH(characters);
 			random_string TEXT := '';
-			i INT;
 		BEGIN
 			IF length <= 0 THEN
 				RAISE EXCEPTION 'Length must be a positive integer';
